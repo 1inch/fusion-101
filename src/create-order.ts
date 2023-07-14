@@ -7,8 +7,8 @@ export async function createOrder(sdk: FusionSDK, from: string, to: string, amou
     try {
         return await sdk.placeOrder({
             fromTokenAddress: from,
-            toTokenAddress: to, // WETH
-            amount: amount, // 80 INCH
+            toTokenAddress: to,
+            amount: amount,
             walletAddress,
             preset,
         })
