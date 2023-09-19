@@ -1,6 +1,15 @@
 import {ordersByMaker} from "./get-orders";
 import {FusionSDK, PrivateKeyProviderConnector} from "@1inch/fusion-sdk";
-import {ethNetworkRPC, network, OneInchRouter, OneInchToken, OneInchTokenAmount, pk, WETH_Token} from "./config/config";
+import {
+    authKey,
+    ethNetworkRPC,
+    network,
+    OneInchRouter,
+    OneInchToken,
+    OneInchTokenAmount,
+    pk,
+    WETH_Token
+} from "./config/config";
 import Web3 from "web3";
 import {approveERC20Token} from "./approve";
 import {getQuote} from "./get-rate";
@@ -10,7 +19,8 @@ import {PresetEnum} from "@1inch/fusion-sdk/api";
 
 const DO_APPROVE = false;
 const DO_SWAP = false;
-const DO_QUOTE = false;
+const DO_QUOTE = true;
+const DO_CHECK_ORDERS = false;
 
 async function main() {
 
@@ -18,13 +28,15 @@ async function main() {
 
     const blockchainProvider = new PrivateKeyProviderConnector(
         pk,
+        // @ts-ignore
         web3,
     )
 
     const sdk = new FusionSDK({
-        url: 'https://fusion.1inch.io',
+        url: "https://api.1inch.dev/fusion",
         network: network,
-        blockchainProvider
+        blockchainProvider,
+        authKey: authKey,
     })
 
 
@@ -44,10 +56,11 @@ async function main() {
             console.log(JSON.stringify(quote))
             console.log('-------------------')
         }
-        console.log('Starting to create Fusion Order...')
     }
 
     if (DO_SWAP) {
+        console.log('Starting to create Fusion Order...')
+
         const info = await createOrder(sdk,
             OneInchToken,
             WETH_Token,
@@ -65,13 +78,17 @@ async function main() {
         }
     }
 
+   if (DO_CHECK_ORDERS) {
+       console.log('Searching for Fusion Orders...')
+       const orders = await ordersByMaker(sdk, getAddressFromPrivateKey(pk))
+       if (orders) {
+           console.log('-------------------')
+           console.log(JSON.stringify(orders))
+           console.log('-------------------')
+       }
+   }
 
-    const orders = await ordersByMaker(sdk, getAddressFromPrivateKey(pk))
-    if (orders) {
-        console.log('-------------------')
-        console.log(JSON.stringify(orders))
-        console.log('-------------------')
-    }
+
 
 }
 
